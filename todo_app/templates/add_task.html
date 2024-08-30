@@ -3,7 +3,17 @@
 <h1>Add a new task</h1>
 <form method="post">
   {% csrf_token %}
-  {{ formx.as_p }}
+  <!-- {{ formx.as_p }} -->
+
+  {% for field in formx %}
+  <div>
+    {{ field.label }}{{ field }}
+
+    {% for error in field.errors %}
+    <p style="color: red;">{{ error }}</p>
+    {% endfor %}
+  </div>
+  {% endfor %}
 
   <p>
     <button type="submit">Save Data</button>

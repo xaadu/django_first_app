@@ -1,7 +1,8 @@
 from django.shortcuts import render, redirect
 from .models import Task
 from django.http import HttpResponse
-from .forms import TaskForm
+from .forms import TaskForm, TaskUpdateForm
+
 
 # Create your views here.
 
@@ -18,8 +19,11 @@ def task_list(request):
 
 
 def task_details(request, pk):
-    task = Task.objects.get(pk=pk)
-    return render(request, "task_detail.html", {"task": task})
+    try:
+        task = Task.objects.get(pk=pk)
+        return render(request, "task_detail.html", {"task": task})
+    except Task.DoesNotExist:
+        return HttpResponse("Task does not exist")
 
 
 def add_task(request):
@@ -55,10 +59,33 @@ def update_task(request):
 
 def add_task_form(request):
     if request.method == "POST":
-        form  = TaskForm(request.POST)
-        if (form.is_valid()):
+        form = TaskForm(request.POST)
+        if form.is_valid():
             form.save()
             return redirect("task_list")
+        else:
+            return render(request, "add_task.html", {"formx": form})
     else:
         form = TaskForm()
         return render(request, "add_task.html", {"formx": form})
+
+
+def update_task_form(request, pk):
+    try:
+        task = Task.objects.get(pk=pk)
+
+        if request.method == "POST":
+            task_form = TaskUpdateForm(request.POST, instance=task)
+            if task_form.is_valid():
+                task_form.save()
+                return redirect("task_list")
+            else:
+                context = {
+                    "form": task_form,
+                }
+                return render(request, "update_task.html", context=context)
+
+        task_form = TaskUpdateForm(instance=task)
+        return render(request, "update_task.html", {"form": task_form})
+    except Task.DoesNotExist:
+        return HttpResponse("Task does not exist")
